@@ -85,6 +85,13 @@ async function run() {
       res.send(result)
     })
 
+
+    app.get('/sort', async(req,res)=> {
+      const searchText = req.query.search
+      const result = await artworkCollection.find({category:searchText}).toArray()
+      res.send(result)
+    })
+
     
     //update artwork
     app.put("/myArtwork/:id", async (req, res) => {
@@ -173,13 +180,15 @@ app.patch('/artworks/:id/like', async (req, res) => {
 //delete from fav
        app.delete("/favorites/:id", async (req, res) => {
       const id = req.params.id;
-      const result = await artworkCollection.deleteOne({
+      console.log(id)
+      const result = await favoriteCollection.deleteOne({
         _id: new ObjectId(id),
       });
       res.send({
         success: true,
         result,
       });
+      console.log(result)
     });
    
     await client.db("admin").command({ ping: 1 });

@@ -62,6 +62,7 @@ async function run() {
       const newArtwork = req.body;
       console.log(newArtwork);
       const result = await artworkCollection.insertOne(newArtwork);
+
       res.send(result);
     });
 
@@ -96,6 +97,29 @@ async function run() {
         result,
       });
     });
+// Like an artwork
+app.patch('/artworks/:id/like', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+
+    const update = { $inc: { likes: 1 } };
+
+    // Update the like count
+    const result = await artworkCollection.updateOne(filter, update);
+
+    if (result.modifiedCount > 0) {
+      // Fetch the updated document to return new like count
+      const updatedArtwork = await artworkCollection.findOne(filter);
+      res.send({ success: true, likes: updatedArtwork.likes });
+    } else {
+      res.status(404).send({ success: false, message: "Artwork not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ success: false, message: "Internal Server Error" });
+  }
+});
 
         //delete artwork
     app.delete("/myArtwork/:id", async (req, res) => {
@@ -133,6 +157,7 @@ async function run() {
         const { _id, ...favoriteData } = data;
 
         const result = await favoriteCollection.insertOne(favoriteData);
+
         res.send({ success: true, result });
       } catch (error) {
         console.error("Error adding favorite:", error);

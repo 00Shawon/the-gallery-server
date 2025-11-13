@@ -78,6 +78,12 @@ async function run() {
       res.send(result);
     });
 
+    //search implement
+    app.get('/search', async(req,res)=> {
+      const searchText = req.query.search
+      const result = await artworkCollection.find({title:{$regex:searchText, $options:'i'}}).toArray()
+      res.send(result)
+    })
 
     
     //update artwork

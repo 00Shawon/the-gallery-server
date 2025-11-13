@@ -65,6 +65,17 @@ async function run() {
       res.send(result);
     });
 
+     // MY artwork page
+    app.get("/myArtwork", async (req, res) => {
+      const artist_email = req.query.email;
+      const query = {};
+
+      if (artist_email) {
+        query.artist_email = artist_email;
+      }
+      const result = await artworkCollection.find(query).toArray();
+      res.send(result);
+    });
    
     await client.db("admin").command({ ping: 1 });
     console.log(

@@ -97,6 +97,18 @@ async function run() {
       });
     });
 
+        //delete artwork
+    app.delete("/myArtwork/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await artworkCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+      res.send({
+        success: true,
+        result,
+      });
+    });
+
    
     await client.db("admin").command({ ping: 1 });
     console.log(

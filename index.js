@@ -76,6 +76,27 @@ async function run() {
       const result = await artworkCollection.find(query).toArray();
       res.send(result);
     });
+
+
+    
+    //update artwork
+    app.put("/myArtwork/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      console.log(data);
+      console.log(id);
+      const objectId = new ObjectId(id);
+      const filter = { _id: objectId };
+      const update = {
+        $set: data,
+      };
+      const result = await artworkCollection.updateOne(filter, update);
+      res.send({
+        success: true,
+        result,
+      });
+    });
+
    
     await client.db("admin").command({ ping: 1 });
     console.log(

@@ -108,6 +108,37 @@ async function run() {
         result,
       });
     });
+  //get favorite
+
+    app.get("/myFavorites", async (req, res) => {
+      const artist_email = req.query.email;
+
+      const result = await favoriteCollection
+        .find({ downloaded_by: artist_email })
+        .toArray();
+      res.send(result);
+    });
+
+     //add to favorite
+    app.post("/favorites", async (req, res) => {
+      try {
+        const data = req.body;
+        console.log("Received data:", data);
+
+        if (!data || Object.keys(data).length === 0) {
+          return res.status(400).send({ message: "No data provided" });
+        }
+
+        // Remove _id to avoid duplicate key error
+        const { _id, ...favoriteData } = data;
+
+        const result = await favoriteCollection.insertOne(favoriteData);
+        res.send({ success: true, result });
+      } catch (error) {
+        console.error("Error adding favorite:", error);
+        res.status(500).send({ message: "Internal Server Error", error });
+      }
+    });
 
    
     await client.db("admin").command({ ping: 1 });

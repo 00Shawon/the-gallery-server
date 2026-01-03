@@ -1,10 +1,9 @@
+ require("dotenv").config();
 const express = require("express");
-const dotenv = require("dotenv");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3000;
-dotenv.config();
 // middleware
 app.use(cors());
 app.use(express.json());
@@ -12,7 +11,7 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.8sp7th5.mongodb.net/artworkDB?retryWrites=true&w=majority&appName=Cluster0`;
 
 // const uri = process.env.MONGO_URI;
-console.log(uri);
+
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -23,7 +22,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const db = client.db("artworkDB");
     const artworkCollection = db.collection("artworks");
@@ -110,6 +109,7 @@ async function run() {
         result,
       });
     });
+    
 // Like an artwork
 app.patch('/artworks/:id/like', async (req, res) => {
   try {
@@ -191,7 +191,7 @@ app.patch('/artworks/:id/like', async (req, res) => {
       console.log(result)
     });
    
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );

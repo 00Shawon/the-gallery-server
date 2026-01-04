@@ -27,24 +27,52 @@ async function run() {
     const db = client.db("artworkDB");
     const artworkCollection = db.collection("artworks");
     const favoriteCollection = db.collection("favorites");
+    const userCollection = db.collection("users"); 
 
     //showing data in the explore home page
-    app.get("/homeArtwork", async (req, res) => {
-      const result = await artworkCollection
-        .find({ visibility: "Public" })
-        .sort({ createdAt: "asc" })
-        .limit(6)
-        .toArray();
-      res.send(result);
+   app.get("/homeArtwork", async (req, res) => {
+  try {
+    const result = await artworkCollection
+      .find({ visibility: "Public" })
+      .sort({ createdAt: "asc" })
+      .limit(8)
+      .toArray();
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("homeArtwork failed:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message,
     });
+  }
+});
+
     //showing data in the explore artwork page
 
-    app.get("/publicArtwork", async (req, res) => {
-      const result = await artworkCollection
-        .find({ visibility: "Public" })
-        .toArray();
-      res.send(result);
-    });
+   app.get("/publicArtwork", async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 8;
+  const skip = (page - 1) * limit;
+
+  const query = { visibility: "Public" };
+
+  const total = await artworkCollection.countDocuments(query);
+
+  const result = await artworkCollection
+    .find(query)
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+  res.send({
+    artworks: result,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+  });
+});
+
 
     //showing data in the detail artwork page
 
@@ -77,19 +105,76 @@ async function run() {
       res.send(result);
     });
 
-    //search implement
-    app.get('/search', async(req,res)=> {
-      const searchText = req.query.search
-      const result = await artworkCollection.find({title:{$regex:searchText, $options:'i'}}).toArray()
-      res.send(result)
-    })
+// SEARCH
+app.get("/search", async (req, res) => {
+  const searchText = req.query.search || "";
+  const page = parseInt(req.query.page) || 1;
+  const limit = 8;
+  const skip = (page - 1) * limit;
+
+  const query = searchText
+    ? {
+        visibility: "Public",
+        title: { $regex: searchText, $options: "i" },
+      }
+    : { visibility: "Public" };
+
+  const total = await artworkCollection.countDocuments(query);
+
+  const result = await artworkCollection
+    .find(query)
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+  res.send({
+    artworks: result,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+  });
+});
 
 
-    app.get('/sort', async(req,res)=> {
-      const searchText = req.query.search
-      const result = await artworkCollection.find({category:searchText}).toArray()
-      res.send(result)
+// SORT
+app.get("/sort", async (req, res) => {
+  const {
+    search = "",
+    sortOrder = "asc",
+    page = 1
+  } = req.query;
+
+  const limit = 8;
+  const skip = (page - 1) * limit;
+
+  const query = {
+    visibility: "Public",
+    ...(search && {
+      title: { $regex: search, $options: "i" }
     })
+  };
+
+  const sortValue = sortOrder === "desc" ? -1 : 1;
+
+  const total = await artworkCollection.countDocuments(query);
+
+  const artworks = await artworkCollection
+    .find(query)
+    .sort({ price: sortValue })
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+  res.send({
+    artworks,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: Number(page),
+  });
+});
+
+
+
 
     
     //update artwork
